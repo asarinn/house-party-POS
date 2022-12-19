@@ -3,50 +3,37 @@ from drink import Drink
 
 class User:
     def __init__(self, name: str):
-        self._name: str = name
+        self.name: str = name  # Used to match against orders in the database
         self._total: float = 0
         self._paid: float = 0
         self._balance: float = 0
-        self._drinks = []
+        self._drinks: list[tuple[str, int]] = []
+        self.current_order_number = 0
 
-    @property
-    def name(self):
-        return
-
-    @name.setter
-    def name(self, value):
-        pass
-
+    # Retrieve current total from all open orders in database
     @property
     def total(self):
         return
 
-    @total.setter
-    def total(self, value):
-        pass
-
-    @property
-    def paid(self):
-        return
-
-    @paid.setter
-    def paid(self, value):
-        pass
-
-    @property
-    def balance(self):
-        return
-
-    @balance.setter
-    def balance(self, value):
-        pass
-
+    # Returns a list of drinks and quantities from all open orders
     @property
     def drinks(self):
         return
 
     def add_drink(self, drink: Drink, quantity: int):
-        # Add to list
+        # Check to see if any orders are open, open a new one and associate order number if needed
 
-        # Recalculate Balance
+        # Add this drink to database
+
+        pass
+
+    def remove_drink(self, drink: Drink, quantity: int):
+        # Check all open user orders, throw warning if drink does not exist in any open customer orders
+
+        # Remove drink in quantity from database
+
+        pass
+
+    def settle_up(self):
+        # Settle up all open orders on database
         pass
