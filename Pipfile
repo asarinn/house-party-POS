@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 pyqt6 = "*"
+icespringpysidestubs-pyqt6 = "*"
+pyqt6-qt = "*"
 
 [dev-packages]
 

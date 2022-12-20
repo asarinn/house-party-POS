@@ -1,7 +1,7 @@
 from drink import Drink
 
 
-class User:
+class Patron:
     def __init__(self, name: str):
         self.name: str = name  # Used to match against orders in the database
         self._total: float = 0
