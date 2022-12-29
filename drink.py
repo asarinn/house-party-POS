@@ -1,4 +1,11 @@
+from dataclasses import dataclass
+from PIL.ImageQt import ImageQt
+
+
+@dataclass
 class Drink:
-    def __init__(self, name: str, price: float):
-        self.name = name
-        self.price = price
+    id: int
+    name: str
+    description: str
+    price: float
+    photo: ImageQt

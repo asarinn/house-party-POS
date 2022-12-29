@@ -1,47 +1,31 @@
-from PyQt6.QtWidgets import QPushButton
+from dataclasses import dataclass
 
-from drink import Drink
+from PIL.ImageQt import ImageQt
+
+from order import Order
 
 
+@dataclass
 class Patron:
-    def __init__(self, name: str):
-        self.name: str = name  # Used to match against orders in the database
-        self.button: QPushButton | None = None  # holds its own gui button to make gui modifications easier
-        self._total: float = 0
-        self._drinks: list[tuple[object, int]] = []
-        self.current_order_number = 0
+    id: int
+    name: str
+    orders: list[Order]
+    balance: float
+    photo: ImageQt
 
-        # TODO(from Mike): remove this once database connections are made
-        cup_of_spit = Drink('cup of spit', 1.25)
-        cold_fries = Drink('cold fries', .33)
-        self._drinks = [[cup_of_spit, 5], (cold_fries, 1)]
-
-    # Retrieve current total from all open orders in database
     @property
-    def total(self):
-        # TODO(from Mike): Update from database here
-        return self._total
+    def active_order(self) -> Order | None:
+        for order in self.orders:
+            if not order.settled:
+                return order
+    
+    @active_order.setter
+    def active_order(self, updated_order):
+        for order in self.orders:
+            if not order.settled:
+                order.__dict__.update(updated_order.__dict__)
+                break
 
-    # Returns a list of drinks and quantities from all open orders
     @property
-    def drinks(self):
-        # TODO(from Mike): Update from database here
-        return self._drinks
-
-    def add_drink(self, drink: Drink, quantity: int):
-        # Check to see if any orders are open, open a new one and associate order number if needed
-
-        # Add this drink to database
-
-        pass
-
-    def remove_drink(self, drink: Drink, quantity: int):
-        # Check all open user orders, throw warning if drink does not exist in any open customer orders
-
-        # Remove drink in quantity from database
-
-        pass
-
-    def settle_up(self):
-        # Settle up all open orders on database
-        pass
+    def settled_orders(self) -> list[Order]:
+        return [order for order in self.orders if order.settled]
