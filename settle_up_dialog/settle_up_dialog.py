@@ -2,7 +2,10 @@ from PyQt6.QtWidgets import QDialog
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QImage, QPixmap
 
-from settle_up_dialog_init import Ui_settle_up_dialog
+from utilities import resource_path
+from .settle_up_dialog_init import Ui_settle_up_dialog
+
+QR_CODE_PATH = resource_path('venmo_qrcode.png').as_posix()
 
 
 class SettleUpDialog(QDialog):
@@ -16,8 +19,8 @@ class SettleUpDialog(QDialog):
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
 
         # Load QR code
-        #width = self.width() // 2
-        image = QImage('venmo_qrcode.png')
+        width = self.width()
+        image = QImage(QR_CODE_PATH).scaledToWidth(width, Qt.TransformationMode.SmoothTransformation)
         self.ui.qr_code_label.setPixmap(QPixmap.fromImage(image))
 
         # Connect buttons

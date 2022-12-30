@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '.\settle_up_dialog.ui'
+# Form implementation generated from reading ui file '.\settle_up_dialog\settle_up_dialog.ui'
 #
 # Created by: PyQt6 UI code generator 6.4.0
 #
@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_settle_up_dialog(object):
     def setupUi(self, settle_up_dialog):
         settle_up_dialog.setObjectName("settle_up_dialog")
-        settle_up_dialog.resize(1280, 960)
+        settle_up_dialog.resize(640, 480)
         settle_up_dialog.setStyleSheet("QDialog {\n"
 "    border: 1px solid #424242;\n"
 "    border-top-left-radius: 10px;\n"
@@ -21,6 +21,8 @@ class Ui_settle_up_dialog(object):
 "    border-bottom-right-radius: 10px;\n"
 "}")
         self.verticalLayout = QtWidgets.QVBoxLayout(settle_up_dialog)
+        self.verticalLayout.setContentsMargins(-1, 15, -1, 15)
+        self.verticalLayout.setSpacing(15)
         self.verticalLayout.setObjectName("verticalLayout")
         self.label = QtWidgets.QLabel(settle_up_dialog)
         font = QtGui.QFont()
@@ -33,14 +35,13 @@ class Ui_settle_up_dialog(object):
         self.qr_code_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.qr_code_label.setObjectName("qr_code_label")
         self.verticalLayout.addWidget(self.qr_code_label)
-        self.label_3 = QtWidgets.QLabel(settle_up_dialog)
+        self.total_label = QtWidgets.QLabel(settle_up_dialog)
         font = QtGui.QFont()
         font.setPointSize(20)
-        self.label_3.setFont(font)
-        self.label_3.setStyleSheet("color: red")
-        self.label_3.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.label_3.setObjectName("label_3")
-        self.verticalLayout.addWidget(self.label_3)
+        self.total_label.setFont(font)
+        self.total_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.total_label.setObjectName("total_label")
+        self.verticalLayout.addWidget(self.total_label)
         self.button_box = QtWidgets.QDialogButtonBox(settle_up_dialog)
         self.button_box.setStyleSheet("padding: 15px 20px;\n"
 "font-size: 16pt")
@@ -48,6 +49,14 @@ class Ui_settle_up_dialog(object):
         self.button_box.setCenterButtons(True)
         self.button_box.setObjectName("button_box")
         self.verticalLayout.addWidget(self.button_box)
+        self.label_3 = QtWidgets.QLabel(settle_up_dialog)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.label_3.setFont(font)
+        self.label_3.setStyleSheet("color: red")
+        self.label_3.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.label_3.setObjectName("label_3")
+        self.verticalLayout.addWidget(self.label_3)
         self.verticalLayout.setStretch(1, 1)
 
         self.retranslateUi(settle_up_dialog)
@@ -56,4 +65,5 @@ class Ui_settle_up_dialog(object):
     def retranslateUi(self, settle_up_dialog):
         _translate = QtCore.QCoreApplication.translate
         self.label.setText(_translate("settle_up_dialog", "@Michael-Proemsey"))
+        self.total_label.setText(_translate("settle_up_dialog", "Total:"))
         self.label_3.setText(_translate("settle_up_dialog", "Please select OK only after you\'ve paid!"))

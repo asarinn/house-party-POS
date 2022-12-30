@@ -1,0 +1,1 @@
+from .cart_row_template_init import Ui_cart_row_template

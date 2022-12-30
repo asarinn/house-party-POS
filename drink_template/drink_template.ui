@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string/>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,0,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,0,0">
    <item>
     <widget class="QLabel" name="photo_label">
      <property name="scaledContents">
@@ -49,26 +49,14 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="description_label">
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QPushButton" name="add_to_cart_button">
      <property name="font">
       <font>
-       <pointsize>12</pointsize>
+       <pointsize>16</pointsize>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">padding: 10px 20px</string>
+      <string notr="true">padding: 20px</string>
      </property>
      <property name="text">
       <string>Add to Cart</string>

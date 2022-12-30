@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '.\drink_template.ui'
+# Form implementation generated from reading ui file '.\drink_template\drink_template.ui'
 #
 # Created by: PyQt6 UI code generator 6.4.0
 #
@@ -35,18 +35,11 @@ class Ui_drink_template(object):
         self.price_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.price_label.setObjectName("price_label")
         self.verticalLayout.addWidget(self.price_label)
-        self.description_label = QtWidgets.QLabel(drink_template)
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        self.description_label.setFont(font)
-        self.description_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.description_label.setObjectName("description_label")
-        self.verticalLayout.addWidget(self.description_label)
         self.add_to_cart_button = QtWidgets.QPushButton(drink_template)
         font = QtGui.QFont()
-        font.setPointSize(12)
+        font.setPointSize(16)
         self.add_to_cart_button.setFont(font)
-        self.add_to_cart_button.setStyleSheet("padding: 10px 20px")
+        self.add_to_cart_button.setStyleSheet("padding: 20px")
         self.add_to_cart_button.setObjectName("add_to_cart_button")
         self.verticalLayout.addWidget(self.add_to_cart_button)
         self.verticalLayout.setStretch(0, 1)

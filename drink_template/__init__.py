@@ -1,0 +1,1 @@
+from .drink_template_init import Ui_drink_template
