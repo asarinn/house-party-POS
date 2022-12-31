@@ -1,10 +1,13 @@
 import json
 from datetime import datetime
+from pathlib import Path
+from random import choice
 
 # 3rd party imports
 from PyQt6.QtWidgets import QMainWindow, QInputDialog, QMessageBox, QWidget, QPushButton, QScroller
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from colorhash import ColorHash
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -16,6 +19,7 @@ from drink_template import Ui_drink_template
 from tab_row_template import Ui_tab_row_template
 from cart_row_template import Ui_cart_row_template
 from settle_up_dialog import SettleUpDialog
+from utilities import resource_path
 from patron import Patron
 from drink import Drink
 from order import Order, OrderItem
@@ -36,6 +40,13 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.settle_up_dialog = SettleUpDialog(self)
+        
+        # Sound player
+        self.player = QMediaPlayer()
+        self.output = QAudioOutput()
+        self.player.setAudioOutput(self.output)
+        self.output.setVolume(50)
+        self.sound_files = [f.as_posix() for f in Path('sounds').glob('*.mp3')]
 
         self.patrons: list[Patron] = []
         self.cart: OrderItem = []
@@ -269,6 +280,11 @@ class MainWindow(QMainWindow):
         request = (API_URL / 'orders' / str(order_id)).patch(data=data, headers=headers)
         order = self.create_order(request.json())
         self.active_patron.active_order = order
+
+        # Play random soundbyte
+        sound = choice(self.audio_files)
+        self.player.setSource(QUrl.fromLocalFile(resource_path(sound)))
+        self.player.play()
 
         self.update_tab()
         self.clear_cart()

@@ -497,6 +497,13 @@
             <item row="0" column="0">
              <layout class="QHBoxLayout" name="horizontalLayout_3">
               <item>
+               <widget class="Line" name="line">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QPushButton" name="new_patron_button">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -517,13 +524,6 @@
                 </property>
                 <property name="text">
                  <string>+</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="Line" name="line">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
                 </property>
                </widget>
               </item>
@@ -665,8 +665,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1548</width>
-                 <height>409</height>
+                 <width>55</width>
+                 <height>31</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -866,8 +866,8 @@
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>1313</width>
-                      <height>152</height>
+                      <width>20</width>
+                      <height>16</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -1046,8 +1046,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1527</width>
-                 <height>507</height>
+                 <width>55</width>
+                 <height>16</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_3">

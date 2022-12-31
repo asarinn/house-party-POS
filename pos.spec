@@ -8,7 +8,7 @@ a = Analysis(
     ['pos.py'],
     pathex=[],
     binaries=[],
-    datas=[('venmo_qrcode.png', '.'),],
+    datas=[('venmo_qrcode.png', '.'), ('sounds', 'sounds')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
