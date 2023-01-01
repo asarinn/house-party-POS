@@ -4,7 +4,7 @@
 name = "altgraph"
 version = "0.17.3"
 description = "Python graph (network) package"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 files = [
@@ -351,7 +351,7 @@ files = [
 name = "future"
 version = "0.18.2"
 description = "Clean single-source support for Python 3 and 2"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 files = [
@@ -473,7 +473,7 @@ test = ["pyannotate", "pytest"]
 name = "macholib"
 version = "1.16.2"
 description = "Mach-O header analysis and editing"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 files = [
@@ -516,7 +516,7 @@ files = [
 name = "pefile"
 version = "2022.5.30"
 description = "Python PE parsing module"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.0"
 files = [
@@ -803,7 +803,7 @@ files = [
 name = "pyinstaller"
 version = "5.7.0"
 description = "PyInstaller bundles a Python application and all its dependencies into a single package."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "<3.12,>=3.7"
 files = [
@@ -837,7 +837,7 @@ hook-testing = ["execnet (>=1.5.0)", "psutil", "pytest (>=2.7.3)"]
 name = "pyinstaller-hooks-contrib"
 version = "2022.14"
 description = "Community maintained hooks for PyInstaller"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1016,7 +1016,7 @@ darkdetect = ">=0.7.1,<0.8.0"
 name = "pywin32-ctypes"
 version = "0.2.0"
 description = ""
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 files = [
@@ -1181,7 +1181,7 @@ doc = ["Sphinx", "sphinx-rtd-theme"]
 name = "setuptools"
 version = "65.6.3"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1257,4 +1257,4 @@ test = ["WebOb", "jmespath"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "5b43cb031cfc3154b0f03fec84cc8e40bdf3e897a7369821166fe2f54dbb6b27"
+content-hash = "2425079a9f39e8707b555504160daed8405b98b9c1baf88d2d37260c29aa00eb"
