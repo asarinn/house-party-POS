@@ -395,5 +395,6 @@ class MainWindow(QMainWindow):
             # Construct drink object
             drink = Drink(**drink_json)
 
-            self.add_drink_to_menu(drink, i // self.DEFAULT_DRINK_COLUMNS,
-                                   i % self.DEFAULT_DRINK_COLUMNS)
+            if drink.in_stock:
+                self.add_drink_to_menu(drink, i // self.DEFAULT_DRINK_COLUMNS,
+                                    i % self.DEFAULT_DRINK_COLUMNS)

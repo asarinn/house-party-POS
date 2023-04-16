@@ -9,3 +9,4 @@ class Drink:
     description: str
     price: float
     photo: ImageQt
+    in_stock: bool
