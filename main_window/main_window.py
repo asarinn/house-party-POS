@@ -1,10 +1,13 @@
 import json
 from datetime import datetime
+from pathlib import Path
+from random import choice
 
 # 3rd party imports
 from PyQt6.QtWidgets import QMainWindow, QInputDialog, QMessageBox, QWidget, QPushButton, QScroller
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from colorhash import ColorHash
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -16,6 +19,7 @@ from drink_template import Ui_drink_template
 from tab_row_template import Ui_tab_row_template
 from cart_row_template import Ui_cart_row_template
 from settle_up_dialog import SettleUpDialog
+from utilities import resource_path
 from patron import Patron
 from drink import Drink
 from order import Order, OrderItem
@@ -36,6 +40,13 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.settle_up_dialog = SettleUpDialog(self)
+        
+        # Sound player
+        self.player = QMediaPlayer()
+        self.output = QAudioOutput()
+        self.player.setAudioOutput(self.output)
+        self.output.setVolume(50)
+        self.sound_files = [f.as_posix() for f in Path('sounds').glob('*.mp3')]
 
         self.patrons: list[Patron] = []
         self.cart: OrderItem = []
@@ -75,6 +86,7 @@ class MainWindow(QMainWindow):
         self.active_patron = patron
         self.ui.stacked_widget.setCurrentIndex(1)
         self.ui.patron_name_label.setText(patron.name)
+        self.ui.scrollAreaWidgetContents.setFocus()
     
     def back_to_patrons(self):
         self.ui.stacked_widget.setCurrentIndex(0)
@@ -95,8 +107,8 @@ class MainWindow(QMainWindow):
             patron_json['orders'] = orders
             patron = Patron(**patron_json)
             self.patrons.append(patron)
-            self.add_patron_to_gui(patron, i // self.DEFAULT_PATRON_COLUMNS,
-                                   i % self.DEFAULT_PATRON_COLUMNS)
+            
+            self.add_patron_to_gui(patron, i)
     
     # Add new patron from GUI
     def add_patron(self):
@@ -112,14 +124,20 @@ class MainWindow(QMainWindow):
 
             self.patrons.append(patron)
 
-            x = (len(self.patrons) - 1) // self.DEFAULT_PATRON_COLUMNS
-            y = (len(self.patrons) - 1) % self.DEFAULT_PATRON_COLUMNS
-            self.add_patron_to_gui(patron, x, y)
+            self.add_patron_to_gui(patron, len(self.patrons) - 1)
 
             # Select newly added patron
             self.patron_clicked(patron)
 
-    def add_patron_to_gui(self, patron: Patron, x: int, y: int):
+    def add_patron_to_gui(self, patron: Patron, num_patrons: int):
+        patron_x, patron_y = self.get_patron_grid_cell(num_patrons)
+
+        # Get new user button and move it to next grid cell
+        new_x, new_y = self.get_patron_grid_cell(num_patrons + 1)
+        new_user_button = self.ui.patron_layout.itemAtPosition(patron_x, patron_y).widget()
+        new_user_button.setParent(None)
+        self.ui.patron_layout.addWidget(new_user_button, new_x, new_y)
+
         # Create new button
         patron_button = QPushButton()
         font = patron_button.font()
@@ -139,7 +157,7 @@ class MainWindow(QMainWindow):
         patron_button.clicked.connect(lambda: self.patron_clicked(patron))
 
         # Add button to gui (+1 to compensate for add button)
-        self.ui.patron_layout.addWidget(patron_button, x, y + 1)
+        self.ui.patron_layout.addWidget(patron_button, patron_x, patron_y)
 
     def settle_up(self):
         # Update order total
@@ -153,6 +171,9 @@ class MainWindow(QMainWindow):
             self.active_patron.active_order.settled = True
 
             self.back_to_patrons()
+    
+    def get_patron_grid_cell(self, num_patrons):
+         return num_patrons // self.DEFAULT_PATRON_COLUMNS, num_patrons % self.DEFAULT_PATRON_COLUMNS
     
     ####################################################################################################################
     # Cart
@@ -269,6 +290,12 @@ class MainWindow(QMainWindow):
         request = (API_URL / 'orders' / str(order_id)).patch(data=data, headers=headers)
         order = self.create_order(request.json())
         self.active_patron.active_order = order
+
+        # Play random soundbyte
+        sound = choice(self.sound_files)
+        path = QUrl.fromLocalFile(resource_path(sound).as_posix())
+        self.player.setSource(path)
+        self.player.play()
 
         self.update_tab()
         self.clear_cart()
