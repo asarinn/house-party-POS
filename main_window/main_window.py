@@ -387,7 +387,8 @@ class MainWindow(QMainWindow):
         request = (API_URL / 'drinks').get()
 
         # Populate drink menu
-        for i, drink_json in enumerate(request.json()):
+        drinks_json = [d for d in request.json() if d['in_stock']]
+        for i, drink_json in enumerate(drinks_json):
             # Create image object
             request = URL(drink_json['photo']).get(stream=True)
             drink_json['photo'] = ImageQt(Image.open(request.raw))
@@ -395,6 +396,5 @@ class MainWindow(QMainWindow):
             # Construct drink object
             drink = Drink(**drink_json)
 
-            if drink.in_stock:
-                self.add_drink_to_menu(drink, i // self.DEFAULT_DRINK_COLUMNS,
-                                    i % self.DEFAULT_DRINK_COLUMNS)
+            self.add_drink_to_menu(drink, i // self.DEFAULT_DRINK_COLUMNS,
+                                i % self.DEFAULT_DRINK_COLUMNS)
