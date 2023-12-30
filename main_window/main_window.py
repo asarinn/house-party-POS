@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-from pathlib import Path
 from random import choice
 from urllib.parse import urljoin
 
@@ -41,7 +40,7 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.settle_up_dialog = SettleUpDialog(self)
-        
+
         # Sound player
         self.player = QMediaPlayer()
         self.output = QAudioOutput()
@@ -68,7 +67,7 @@ class MainWindow(QMainWindow):
         # Load from database
         self.load_patrons()
         self.load_drinks()
-    
+
     ####################################################################################################################
     # Patron
     ####################################################################################################################
@@ -88,7 +87,7 @@ class MainWindow(QMainWindow):
         self.ui.stacked_widget.setCurrentIndex(1)
         self.ui.patron_name_label.setText(patron.name)
         self.ui.scrollArea.setFocus()
-    
+
     def back_to_patrons(self):
         self.ui.stacked_widget.setCurrentIndex(0)
         self.ui.tab_widget.setCurrentIndex(0)
@@ -105,13 +104,13 @@ class MainWindow(QMainWindow):
             orders = []
             for order_json in patron_json['orders']:
                 orders.append(self.create_order(order_json))
-            
+
             patron_json['orders'] = orders
             patron = Patron(**patron_json)
             self.patrons.append(patron)
-            
+
             self.add_patron_to_gui(patron, i)
-    
+
     # Add new patron from GUI
     def add_patron(self):
         name, ok = QInputDialog().getText(self, 'Add a Patron', "Please enter your full name:")
@@ -147,7 +146,7 @@ class MainWindow(QMainWindow):
         font.setPointSize(24)
         patron_button.setFont(font)
         patron_button.setMinimumSize(150, 150)
-        
+
         # Set button color based on patron name
         color = ColorHash(patron.name)
         patron_button.setStyleSheet(f'background-color: {color.hex}; color: #202124')
@@ -175,17 +174,17 @@ class MainWindow(QMainWindow):
             self.active_patron.active_order.settled = True
 
             self.back_to_patrons()
-    
+
     def get_patron_grid_cell(self, num_patrons):
-         return num_patrons // self.DEFAULT_PATRON_COLUMNS, num_patrons % self.DEFAULT_PATRON_COLUMNS
-    
+        return num_patrons // self.DEFAULT_PATRON_COLUMNS, num_patrons % self.DEFAULT_PATRON_COLUMNS
+
     ####################################################################################################################
     # Cart
     ####################################################################################################################
 
     def increase_item_quantity(self, item):
         item.quantity += 1
-        
+
         # Update labels
         item.ui.quantity_label.setText(str(item.quantity))
         item.ui.total_label.setText(f'${item.total:.2f}')
@@ -196,7 +195,7 @@ class MainWindow(QMainWindow):
 
     def decrease_item_quantity(self, item):
         item.quantity -= 1
-        
+
         # Update labels
         item.ui.quantity_label.setText(str(item.quantity))
         item.ui.total_label.setText(f'${item.total:.2f}')
@@ -204,7 +203,7 @@ class MainWindow(QMainWindow):
 
         if item.quantity == 1:
             item.ui.decrease_quantity_button.setEnabled(False)
-        
+
     def add_to_cart(self, drink: Drink):
         for item in self.cart:
             if item.drink == drink.name:
@@ -243,11 +242,11 @@ class MainWindow(QMainWindow):
 
         # Show cart
         self.set_cart_visible(True)
-    
+
     def update_cart_total(self):
         total = sum(i.total for i in self.cart)
         self.ui.cart_total_label.setText(f'Cart Total: ${total:.2f}')
-    
+
     def remove_from_cart(self, item):
         index = self.cart.index(item)
         self.cart.pop(index)
@@ -265,7 +264,7 @@ class MainWindow(QMainWindow):
         # Clear widgets in cart layout
         for i in reversed(range(self.ui.cart_layout.count())):
             self.ui.cart_layout.itemAt(i).widget().setParent(None)
-        
+
         # Reset cart total
         self.ui.cart_total_label.setText('Cart Total: $0.00')
 
@@ -278,17 +277,17 @@ class MainWindow(QMainWindow):
 
     def set_cart_visible(self, visible):
         self.ui.cart_frame.setVisible(visible)
-    
+
     ####################################################################################################################
     # Tab
     ####################################################################################################################
-    
+
     def add_to_tab(self):
         order_id = self.active_patron.active_order.id
         order_items = []
         for item in self.cart:
             order_items.append({'drink': item.drink, 'quantity': item.quantity})
-        
+
         data = json.dumps({'order_items': order_items})
         headers = {'content-type': 'application/json'}
         url = urljoin(API_URL, f'orders/{order_id}')
@@ -309,7 +308,7 @@ class MainWindow(QMainWindow):
     def update_tab(self):
         for i in reversed(range(self.ui.tab_layout.count())):
             self.ui.tab_layout.itemAt(i).widget().setParent(None)
-        
+
         order = self.active_patron.active_order
         if order is None:
             # If active order does not exist, create new order
@@ -344,7 +343,7 @@ class MainWindow(QMainWindow):
             order.total += item.total
 
         self.ui.tab_total_label.setText(f'Total: ${order.total:.2f}')
-    
+
     def remove_from_tab(self, item):
         url = urljoin(API_URL, f'order_items/{item.id}')
         requests.delete(url)
@@ -374,12 +373,15 @@ class MainWindow(QMainWindow):
         drink_ui.setupUi(drink_widget)
 
         # Resize photo to template size
-        photo = drink.photo.scaled(drink_widget.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        photo = drink.photo.scaled(
+            drink_widget.size(),
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
 
         # Populate labels from information
         drink_ui.photo_label.setPixmap(QPixmap.fromImage(photo))
         drink_ui.name_label.setText(drink.name)
-        #drink_ui.description_label.setText(drink.description)
         drink_ui.price_label.setText(f'${drink.price:.2f}')
 
         # Connect UI
@@ -404,5 +406,4 @@ class MainWindow(QMainWindow):
             # Construct drink object
             drink = Drink(**drink_json)
 
-            self.add_drink_to_menu(drink, i // self.DEFAULT_DRINK_COLUMNS,
-                                i % self.DEFAULT_DRINK_COLUMNS)
+            self.add_drink_to_menu(drink, i // self.DEFAULT_DRINK_COLUMNS, i % self.DEFAULT_DRINK_COLUMNS)

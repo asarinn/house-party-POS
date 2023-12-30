@@ -18,7 +18,7 @@ class Patron:
         for order in self.orders:
             if not order.settled:
                 return order
-    
+
     @active_order.setter
     def active_order(self, updated_order):
         for order in self.orders:
