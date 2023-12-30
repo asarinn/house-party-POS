@@ -2,16 +2,17 @@ import json
 from datetime import datetime
 from pathlib import Path
 from random import choice
+from urllib.parse import urljoin
 
 # 3rd party imports
+import requests
+from colorhash import ColorHash
 from PyQt6.QtWidgets import QMainWindow, QInputDialog, QMessageBox, QWidget, QPushButton, QScroller
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
-from colorhash import ColorHash
 from PIL import Image
 from PIL.ImageQt import ImageQt
-from urlpath import URL
 
 # Local imports
 from .main_window_init import Ui_main_window
@@ -24,13 +25,13 @@ from patron import Patron
 from drink import Drink
 from order import Order, OrderItem
 
-API_URL = URL('http://192.168.1.9/api')
+API_URL = 'http://192.168.1.9/api/'
 DEBUG = False
 
 
 class MainWindow(QMainWindow):
     DEFAULT_DRINK_COLUMNS = 4
-    DEFAULT_PATRON_COLUMNS = 5
+    DEFAULT_PATRON_COLUMNS = 8
 
     def __init__(self):
         super().__init__()
@@ -46,7 +47,7 @@ class MainWindow(QMainWindow):
         self.output = QAudioOutput()
         self.player.setAudioOutput(self.output)
         self.output.setVolume(50)
-        self.sound_files = [f.as_posix() for f in Path('sounds').glob('*.mp3')]
+        self.sound_files = [f.as_posix() for f in resource_path('sounds').glob('*.mp3')]
 
         self.patrons: list[Patron] = []
         self.cart: OrderItem = []
@@ -86,7 +87,7 @@ class MainWindow(QMainWindow):
         self.active_patron = patron
         self.ui.stacked_widget.setCurrentIndex(1)
         self.ui.patron_name_label.setText(patron.name)
-        self.ui.scrollAreaWidgetContents.setFocus()
+        self.ui.scrollArea.setFocus()
     
     def back_to_patrons(self):
         self.ui.stacked_widget.setCurrentIndex(0)
@@ -96,7 +97,8 @@ class MainWindow(QMainWindow):
     def load_patrons(self):
         # Fetch patrons
         # TODO(brett): error handling on request
-        request = (API_URL / 'patrons').get()
+        url = urljoin(API_URL, 'patrons')
+        request = requests.get(url)
 
         for i, patron_json in enumerate(request.json()):
             # Construct Order objects
@@ -119,7 +121,8 @@ class MainWindow(QMainWindow):
                             'The desired name already exists, please try again.').exec()
                 return
 
-            response = (API_URL / 'patrons').post(data={'name': name})
+            url = urljoin(API_URL, 'patrons')
+            response = requests.post(url, data={'name': name})
             patron = Patron(**response.json())
 
             self.patrons.append(patron)
@@ -166,7 +169,8 @@ class MainWindow(QMainWindow):
         settled = self.settle_up_dialog.exec()
         if settled:
             order_id = self.active_patron.active_order.id
-            (API_URL / 'orders' / str(order_id)).patch(data={'settled': True})
+            url = urljoin(API_URL, f'orders/{order_id}')
+            requests.patch(url, data={'settled': True})
 
             self.active_patron.active_order.settled = True
 
@@ -287,13 +291,14 @@ class MainWindow(QMainWindow):
         
         data = json.dumps({'order_items': order_items})
         headers = {'content-type': 'application/json'}
-        request = (API_URL / 'orders' / str(order_id)).patch(data=data, headers=headers)
+        url = urljoin(API_URL, f'orders/{order_id}')
+        request = requests.patch(url, data=data, headers=headers)
         order = self.create_order(request.json())
         self.active_patron.active_order = order
 
         # Play random soundbyte
         sound = choice(self.sound_files)
-        path = QUrl.fromLocalFile(resource_path(sound).as_posix())
+        path = QUrl.fromLocalFile(sound)
         self.player.setSource(path)
         self.player.play()
 
@@ -308,7 +313,8 @@ class MainWindow(QMainWindow):
         order = self.active_patron.active_order
         if order is None:
             # If active order does not exist, create new order
-            request = (API_URL / 'orders').post(data={'patron': self.active_patron.name})
+            url = urljoin(API_URL, 'orders')
+            request = requests.post(url, data={'patron': self.active_patron.name})
             order = Order(**request.json())
             self.active_patron.orders.append(order)
 
@@ -340,7 +346,8 @@ class MainWindow(QMainWindow):
         self.ui.tab_total_label.setText(f'Total: ${order.total:.2f}')
     
     def remove_from_tab(self, item):
-        (API_URL / 'order_items' / str(item.id)).delete()
+        url = urljoin(API_URL, f'order_items/{item.id}')
+        requests.delete(url)
         self.active_patron.active_order.order_items.remove(item)
         self.update_tab()
 
@@ -384,13 +391,14 @@ class MainWindow(QMainWindow):
     def load_drinks(self):
         # Fetch drinks
         # TODO(brett): error handling on request
-        request = (API_URL / 'drinks').get()
+        url = urljoin(API_URL, 'drinks')
+        request = requests.get(url)
 
         # Populate drink menu
         drinks_json = [d for d in request.json() if d['in_stock']]
         for i, drink_json in enumerate(drinks_json):
             # Create image object
-            request = URL(drink_json['photo']).get(stream=True)
+            request = requests.get(drink_json['photo'], stream=True)
             drink_json['photo'] = ImageQt(Image.open(request.raw))
 
             # Construct drink object

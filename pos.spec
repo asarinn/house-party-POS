@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import copy_metadata
 
 
 block_cipher = None
@@ -8,7 +9,7 @@ a = Analysis(
     ['pos.py'],
     pathex=[],
     binaries=[],
-    datas=[('venmo_qrcode.png', '.'), ('sounds', 'sounds')],
+    datas=[('venmo_qrcode.png', '.'), ('sounds', 'sounds')] + copy_metadata('colorhash', recursive=True),
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
