@@ -13,14 +13,11 @@
   <property name="windowTitle">
    <string/>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
    <item>
-    <widget class="ClickableLabel" name="photo_label">
-     <property name="scaledContents">
+    <widget class="QPushButton" name="photo_button">
+     <property name="flat">
       <bool>true</bool>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </item>
@@ -65,13 +62,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>ClickableLabel</class>
-   <extends>QLabel</extends>
-   <header>utilities.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

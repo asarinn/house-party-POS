@@ -7,9 +7,9 @@ from urllib.parse import urljoin
 # 3rd party imports
 import requests
 from colorhash import ColorHash
-from PyQt6.QtWidgets import QMainWindow, QInputDialog, QMessageBox, QWidget, QPushButton, QScroller
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtWidgets import QMainWindow, QInputDialog, QMessageBox, QWidget, QPushButton, QScroller, QApplication
+from PyQt6.QtGui import QPixmap, QIcon
+from PyQt6.QtCore import Qt, QUrl, QTimer
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -60,9 +60,9 @@ class MainWindow(QMainWindow):
 
         if not DEBUG:
             # Grab scroll area gesture for single finger scroll
-            QScroller.grabGesture(self.ui.scrollArea.viewport(), QScroller.ScrollerGestureType.LeftMouseButtonGesture)
-            QScroller.grabGesture(self.ui.scrollArea_2.viewport(), QScroller.ScrollerGestureType.LeftMouseButtonGesture)
-            QScroller.grabGesture(self.ui.scrollArea_3.viewport(), QScroller.ScrollerGestureType.LeftMouseButtonGesture)
+            QScroller.grabGesture(self.ui.scrollArea.viewport(), QScroller.ScrollerGestureType.TouchGesture)
+            QScroller.grabGesture(self.ui.scrollArea_2.viewport(), QScroller.ScrollerGestureType.TouchGesture)
+            QScroller.grabGesture(self.ui.scrollArea_3.viewport(), QScroller.ScrollerGestureType.TouchGesture)
 
         # Load from database
         self.load_patrons()
@@ -86,7 +86,6 @@ class MainWindow(QMainWindow):
         self.active_patron = patron
         self.ui.stacked_widget.setCurrentIndex(1)
         self.ui.patron_name_label.setText(patron.name)
-        self.ui.scrollArea.setFocus()
 
     def back_to_patrons(self):
         self.ui.stacked_widget.setCurrentIndex(0)
@@ -143,7 +142,7 @@ class MainWindow(QMainWindow):
         # Create new button
         patron_button = QPushButton()
         font = patron_button.font()
-        font.setPointSize(32)
+        font.setPointSize(36)
         patron_button.setFont(font)
         patron_button.setMinimumSize(150, 150)
 
@@ -380,14 +379,19 @@ class MainWindow(QMainWindow):
             Qt.TransformationMode.SmoothTransformation
         )
 
+        icon = QIcon()
+        icon.addPixmap(QPixmap.fromImage(photo))
+
         # Populate labels from information
-        drink_ui.photo_label.setPixmap(QPixmap.fromImage(photo))
+        #drink_ui.photo_label.setPixmap(QPixmap.fromImage(photo))
+        drink_ui.photo_button.setIcon(icon)
+        drink_ui.photo_button.setIconSize(drink_widget.size())
         drink_ui.name_label.setText(drink.name)
         drink_ui.price_label.setText(f'${drink.price:.2f}')
 
         # Connect UI
         drink_ui.add_to_cart_button.clicked.connect(lambda: self.add_to_cart(drink))
-        drink_ui.photo_label.clicked.connect(lambda: self.add_to_cart(drink))
+        #drink_ui.photo_button.clicked.connect(lambda: self.add_to_cart(drink))
 
         # Add widget to layout
         self.ui.menu_grid_layout.addWidget(drink_widget, x, y)

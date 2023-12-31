@@ -16,11 +16,10 @@ class Ui_drink_template(object):
         drink_template.setWindowTitle("")
         self.verticalLayout = QtWidgets.QVBoxLayout(drink_template)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.photo_label = ClickableLabel(parent=drink_template)
-        self.photo_label.setScaledContents(True)
-        self.photo_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.photo_label.setObjectName("photo_label")
-        self.verticalLayout.addWidget(self.photo_label)
+        self.photo_button = QtWidgets.QPushButton(parent=drink_template)
+        self.photo_button.setFlat(True)
+        self.photo_button.setObjectName("photo_button")
+        self.verticalLayout.addWidget(self.photo_button)
         self.name_label = QtWidgets.QLabel(parent=drink_template)
         font = QtGui.QFont()
         font.setPointSize(16)
@@ -42,7 +41,6 @@ class Ui_drink_template(object):
         self.add_to_cart_button.setStyleSheet("padding: 20px")
         self.add_to_cart_button.setObjectName("add_to_cart_button")
         self.verticalLayout.addWidget(self.add_to_cart_button)
-        self.verticalLayout.setStretch(0, 1)
 
         self.retranslateUi(drink_template)
         QtCore.QMetaObject.connectSlotsByName(drink_template)
@@ -50,4 +48,3 @@ class Ui_drink_template(object):
     def retranslateUi(self, drink_template):
         _translate = QtCore.QCoreApplication.translate
         self.add_to_cart_button.setText(_translate("drink_template", "Add to Cart"))
-from utilities import ClickableLabel
