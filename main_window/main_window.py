@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from functools import partial
 from random import choice
 from urllib.parse import urljoin
 
@@ -25,13 +26,12 @@ from drink import Drink
 from order import Order, OrderItem
 
 API_URL = 'http://192.168.1.9/api/'
+DRINK_COLUMNS = 4
+PATRON_COLUMNS = 8
 DEBUG = False
 
 
 class MainWindow(QMainWindow):
-    DEFAULT_DRINK_COLUMNS = 4
-    DEFAULT_PATRON_COLUMNS = 8
-
     def __init__(self):
         super().__init__()
 
@@ -73,16 +73,16 @@ class MainWindow(QMainWindow):
     ####################################################################################################################
 
     @property
-    def active_patron(self):
+    def active_patron(self) -> Patron:
         return self._active_patron
 
     @active_patron.setter
-    def active_patron(self, value):
-        self._active_patron = value
+    def active_patron(self, patron: Patron):
+        self._active_patron = patron
         self.clear_cart()
         self.update_tab()
 
-    def patron_clicked(self, patron):
+    def patron_clicked(self, patron: Patron):
         self.active_patron = patron
         self.ui.stacked_widget.setCurrentIndex(1)
         self.ui.patron_name_label.setText(patron.name)
@@ -143,7 +143,7 @@ class MainWindow(QMainWindow):
         # Create new button
         patron_button = QPushButton()
         font = patron_button.font()
-        font.setPointSize(24)
+        font.setPointSize(32)
         patron_button.setFont(font)
         patron_button.setMinimumSize(150, 150)
 
@@ -175,14 +175,14 @@ class MainWindow(QMainWindow):
 
             self.back_to_patrons()
 
-    def get_patron_grid_cell(self, num_patrons):
-        return num_patrons // self.DEFAULT_PATRON_COLUMNS, num_patrons % self.DEFAULT_PATRON_COLUMNS
+    def get_patron_grid_cell(self, num_patrons: int) -> (int, int):
+        return num_patrons // PATRON_COLUMNS, num_patrons % PATRON_COLUMNS
 
     ####################################################################################################################
     # Cart
     ####################################################################################################################
 
-    def increase_item_quantity(self, item):
+    def increase_item_quantity(self, item: OrderItem):
         item.quantity += 1
 
         # Update labels
@@ -193,7 +193,7 @@ class MainWindow(QMainWindow):
         if item.quantity > 1:
             item.ui.decrease_quantity_button.setEnabled(True)
 
-    def decrease_item_quantity(self, item):
+    def decrease_item_quantity(self, item: OrderItem):
         item.quantity -= 1
 
         # Update labels
@@ -247,7 +247,7 @@ class MainWindow(QMainWindow):
         total = sum(i.total for i in self.cart)
         self.ui.cart_total_label.setText(f'Cart Total: ${total:.2f}')
 
-    def remove_from_cart(self, item):
+    def remove_from_cart(self, item: OrderItem):
         index = self.cart.index(item)
         self.cart.pop(index)
         self.ui.cart_layout.itemAt(index).widget().setParent(None)
@@ -275,7 +275,7 @@ class MainWindow(QMainWindow):
         # Hide cart
         self.set_cart_visible(False)
 
-    def set_cart_visible(self, visible):
+    def set_cart_visible(self, visible: bool):
         self.ui.cart_frame.setVisible(visible)
 
     ####################################################################################################################
@@ -319,6 +319,7 @@ class MainWindow(QMainWindow):
 
         self.ui.settle_up_button.setEnabled(False)
         order.total = 0
+
         for item in order.order_items:
             tab_row_widget = QWidget()
             tab_row_ui = Ui_tab_row_template()
@@ -331,7 +332,7 @@ class MainWindow(QMainWindow):
             tab_row_ui.total_label.setText(f'${item.total:.2f}')
 
             # Connect UI
-            tab_row_ui.remove_button.clicked.connect(lambda: self.remove_from_tab(item))
+            tab_row_ui.remove_button.clicked.connect(partial(self.remove_from_tab, item))
 
             # Add widget to layout
             self.ui.tab_layout.addWidget(tab_row_widget)
@@ -344,13 +345,13 @@ class MainWindow(QMainWindow):
 
         self.ui.tab_total_label.setText(f'Total: ${order.total:.2f}')
 
-    def remove_from_tab(self, item):
+    def remove_from_tab(self, item: OrderItem):
         url = urljoin(API_URL, f'order_items/{item.id}')
         requests.delete(url)
         self.active_patron.active_order.order_items.remove(item)
         self.update_tab()
 
-    def create_order(self, order_json):
+    def create_order(self, order_json: dict) -> Order:
         items = []
         for item_json in order_json['order_items']:
             price = item_json['total'] / item_json['quantity']
@@ -386,6 +387,7 @@ class MainWindow(QMainWindow):
 
         # Connect UI
         drink_ui.add_to_cart_button.clicked.connect(lambda: self.add_to_cart(drink))
+        drink_ui.photo_label.clicked.connect(lambda: self.add_to_cart(drink))
 
         # Add widget to layout
         self.ui.menu_grid_layout.addWidget(drink_widget, x, y)
@@ -406,4 +408,4 @@ class MainWindow(QMainWindow):
             # Construct drink object
             drink = Drink(**drink_json)
 
-            self.add_drink_to_menu(drink, i // self.DEFAULT_DRINK_COLUMNS, i % self.DEFAULT_DRINK_COLUMNS)
+            self.add_drink_to_menu(drink, i // DRINK_COLUMNS, i % DRINK_COLUMNS)
