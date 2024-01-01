@@ -510,7 +510,7 @@
               </property>
               <property name="font">
                <font>
-                <pointsize>36</pointsize>
+                <pointsize>24</pointsize>
                </font>
               </property>
               <property name="text">
@@ -1035,8 +1035,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>77</width>
-                 <height>28</height>
+                 <width>1527</width>
+                 <height>507</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_3">

@@ -15,9 +15,9 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
    <item>
-    <widget class="QPushButton" name="photo_button">
-     <property name="flat">
-      <bool>true</bool>
+    <widget class="QLabel" name="photo_label">
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </item>

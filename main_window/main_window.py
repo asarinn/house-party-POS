@@ -7,9 +7,9 @@ from urllib.parse import urljoin
 # 3rd party imports
 import requests
 from colorhash import ColorHash
-from PyQt6.QtWidgets import QMainWindow, QInputDialog, QMessageBox, QWidget, QPushButton, QScroller, QApplication
+from PyQt6.QtWidgets import QMainWindow, QInputDialog, QMessageBox, QWidget, QPushButton, QScroller
 from PyQt6.QtGui import QPixmap, QIcon
-from PyQt6.QtCore import Qt, QUrl, QTimer
+from PyQt6.QtCore import Qt, QUrl, QSize
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -379,13 +379,8 @@ class MainWindow(QMainWindow):
             Qt.TransformationMode.SmoothTransformation
         )
 
-        icon = QIcon()
-        icon.addPixmap(QPixmap.fromImage(photo))
-
         # Populate labels from information
-        #drink_ui.photo_label.setPixmap(QPixmap.fromImage(photo))
-        drink_ui.photo_button.setIcon(icon)
-        drink_ui.photo_button.setIconSize(drink_widget.size())
+        drink_ui.photo_label.setPixmap(QPixmap.fromImage(photo))
         drink_ui.name_label.setText(drink.name)
         drink_ui.price_label.setText(f'${drink.price:.2f}')
 
