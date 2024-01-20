@@ -1,4 +1,6 @@
 import json
+import urllib
+import warnings
 from datetime import datetime
 from functools import partial
 from random import choice
@@ -6,6 +8,7 @@ from urllib.parse import urljoin
 
 # 3rd party imports
 import requests
+from PyQt6 import QtCore, QtWidgets, QtGui
 from colorhash import ColorHash
 from PyQt6.QtWidgets import QMainWindow, QInputDialog, QMessageBox, QWidget, QPushButton, QScroller
 from PyQt6.QtGui import QPixmap, QIcon
@@ -13,6 +16,7 @@ from PyQt6.QtCore import Qt, QUrl, QSize
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PIL import Image
 from PIL.ImageQt import ImageQt
+from requests import ConnectTimeout
 
 # Local imports
 from .main_window_init import Ui_main_window
@@ -26,6 +30,7 @@ from drink import Drink
 from order import Order, OrderItem
 
 API_URL = 'http://192.168.1.9/api/'
+API_URL = "http://127.0.0.1:8000/api/"
 DRINK_COLUMNS = 4
 PATRON_COLUMNS = 8
 DEBUG = False
@@ -94,9 +99,12 @@ class MainWindow(QMainWindow):
     # Load in existing patrons from the database
     def load_patrons(self):
         # Fetch patrons
-        # TODO(brett): error handling on request
         url = urljoin(API_URL, 'patrons')
-        request = requests.get(url)
+        try:
+            request = requests.get(url)
+        except ConnectTimeout:
+            warnings.warn("Database connection timed out")
+            return
 
         for i, patron_json in enumerate(request.json()):
             # Construct Order objects
@@ -146,19 +154,85 @@ class MainWindow(QMainWindow):
         patron_button.setFont(font)
         patron_button.setMinimumSize(150, 150)
 
-        # Set button color based on patron name
-        color = ColorHash(patron.name)
-        patron_button.setStyleSheet(f'background-color: {color.hex}; color: #202124')
+        # If the user has a picture use that, otherwise use initials and color
 
-        # Extract initials from patron name
-        initials = ''.join([x[0] for x in patron.name.split(' ')]).upper()
-        patron_button.setText(initials)
+        self.set_patron_icon(patron, patron_button)
+
 
         # Connect button press to change active user
         patron_button.clicked.connect(lambda: self.patron_clicked(patron))
 
+        # Setup context menu for later editing
+
+        patron_button.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+        patron_button.customContextMenuRequested.connect(lambda: self.patron_button_context_menu(patron, patron_button))
+
         # Add button to gui (+1 to compensate for add button)
         self.ui.patron_layout.addWidget(patron_button, patron_x, patron_y)
+
+    def set_patron_icon(self, patron: Patron, patron_button: QPushButton):
+        print(patron.photo)
+        if patron.photo:
+            data = urllib.request.urlopen(patron.photo).read()
+
+            image = QtGui.QImage()
+            image.loadFromData(data)
+
+            pixmap = QtGui.QPixmap(image)
+            patron_button.setIcon(QIcon(pixmap))
+            patron_button.setIconSize(patron_button.size())
+        else:
+            # Set button color based on patron name
+            color = ColorHash(patron.name)
+            patron_button.setStyleSheet(f'background-color: {color.hex}; color: #202124')
+
+            # Extract initials from patron name
+            initials = ''.join([x[0] for x in patron.name.split(' ')]).upper()
+            patron_button.setText(initials)
+
+    def patron_button_context_menu(self, patron, patron_button):
+        menu = QtWidgets.QMenu()
+        edit_patron_action = menu.addAction('Edit Patron')
+        remove_patron_action = menu.addAction('Remove Patron')
+        res = menu.exec(QtGui.QCursor.pos())
+        if res == edit_patron_action:
+            self.edit_patron(patron, patron_button)
+        elif res == remove_patron_action:
+            self.remove_patron(patron, patron_button)
+
+    def edit_patron(self, patron, patron_button):
+        name, ok = QInputDialog().getText(self, 'Edit Patron', "Please enter the new name:",
+                                          text=patron.name)
+        if ok and patron.name.lower() != "benchj":
+            if name in [p.name for p in self.patrons]:
+                QMessageBox(QMessageBox.Icon.Critical, 'Duplicate Patron Name',
+                            'The desired name already exists, please try again.').exec()
+                return
+
+            url = urljoin(API_URL, f'patrons/{patron.id}')
+            response = requests.patch(url, data={'name': name})
+
+            patron.name = name
+
+            # Extract initials from patron name
+            initials = ''.join([x[0] for x in patron.name.split(' ')]).upper()
+            patron_button.setText(initials)
+            
+    def remove_patron(self, patron, patron_button):
+        reply = QMessageBox.question(self, 'Remove Patron',
+                                     'Are you sure you want to remove patron from the database?',
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+
+        if reply == QMessageBox.StandardButton.Yes:
+            url = urljoin(API_URL, f'patrons/{patron.id}')
+            response = requests.delete(url)
+
+            if response.status_code == 204:
+                self.patrons.remove(patron)
+                patron_button.setParent(None)
+            else:
+                QMessageBox(QMessageBox.Icon.Critical, 'Delete Error',
+                            'An error occurred while trying to delete the patron. Please try again.').exec()
 
     def settle_up(self):
         # Update order total
@@ -395,7 +469,11 @@ class MainWindow(QMainWindow):
         # Fetch drinks
         # TODO(brett): error handling on request
         url = urljoin(API_URL, 'drinks')
-        request = requests.get(url)
+        try:
+            request = requests.get(url)
+        except ConnectTimeout:
+            warnings.warn("Database connection timed out")
+            return
 
         # Populate drink menu
         drinks_json = [d for d in request.json() if d['in_stock']]
