@@ -1,10 +1,16 @@
 import json
+import math
+import time
 import urllib
 import warnings
 from datetime import datetime
 from functools import partial
+from pathlib import Path
 from random import choice
 from urllib.parse import urljoin
+import os
+import urllib.request
+import tempfile
 
 # 3rd party imports
 import requests
@@ -12,7 +18,7 @@ from PyQt6 import QtCore, QtWidgets, QtGui
 from colorhash import ColorHash
 from PyQt6.QtWidgets import QMainWindow, QInputDialog, QMessageBox, QWidget, QPushButton, QScroller
 from PyQt6.QtGui import QPixmap, QIcon
-from PyQt6.QtCore import Qt, QUrl, QSize
+from PyQt6.QtCore import Qt, QUrl, QSize, QBuffer, QByteArray
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -33,6 +39,7 @@ API_URL = 'http://192.168.1.9/api/'
 API_URL = "http://127.0.0.1:8000/api/"
 DRINK_COLUMNS = 4
 PATRON_COLUMNS = 8
+DEFAULT_SPIRAL_SHELLS = 7
 DEBUG = False
 
 
@@ -139,47 +146,69 @@ class MainWindow(QMainWindow):
             self.patron_clicked(patron)
 
     def add_patron_to_gui(self, patron: Patron, num_patrons: int):
-        patron_x, patron_y = self.get_patron_grid_cell(num_patrons)
-
         # Get new user button and move it to next grid cell
-        new_x, new_y = self.get_patron_grid_cell(num_patrons + 1)
-        new_user_button = self.ui.patron_layout.itemAtPosition(patron_x, patron_y).widget()
-        new_user_button.setParent(None)
-        self.ui.patron_layout.addWidget(new_user_button, new_x, new_y)
+        new_x, new_y = self.get_new_patron_grid_cell(num_patrons + 1)
+        self.ui.new_patron_button.setParent(None)
+        self.ui.patron_selection_layout.addWidget(self.ui.new_patron_button, new_y, new_x)
 
         # Create new button
         patron_button = QPushButton()
         font = patron_button.font()
         font.setPointSize(36)
         patron_button.setFont(font)
+
+        # Get the scaling to behave and have uniform buttons even with pictures
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding,
+                                           QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(1)
+        patron_button.setSizePolicy(sizePolicy)
+
+        # OK I give up
         patron_button.setMinimumSize(150, 150)
+        patron_button.setMaximumSize(150, 150)
 
         # If the user has a picture use that, otherwise use initials and color
-
         self.set_patron_icon(patron, patron_button)
-
 
         # Connect button press to change active user
         patron_button.clicked.connect(lambda: self.patron_clicked(patron))
 
-        # Setup context menu for later editing
-
+        # Setup context menu
         patron_button.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         patron_button.customContextMenuRequested.connect(lambda: self.patron_button_context_menu(patron, patron_button))
 
-        # Add button to gui (+1 to compensate for add button)
-        self.ui.patron_layout.addWidget(patron_button, patron_x, patron_y)
+        # Add new button to gui
+        patron_x, patron_y = self.get_new_patron_grid_cell(num_patrons)
+        self.ui.patron_selection_layout.addWidget(patron_button, patron_y, patron_x)
 
     def set_patron_icon(self, patron: Patron, patron_button: QPushButton):
-        print(patron.photo)
         if patron.photo:
-            data = urllib.request.urlopen(patron.photo).read()
+            if ".gif" in patron.photo:
+                # Create temporary directory
+                temp_dir = tempfile.TemporaryDirectory()
+                gif_file_path = Path(temp_dir.name) / "temp.gif"
 
-            image = QtGui.QImage()
-            image.loadFromData(data)
+                # Download the gif file
+                response = requests.get(patron.photo)
+                response.raise_for_status()  # Ensure we got a successful response
 
-            pixmap = QtGui.QPixmap(image)
-            patron_button.setIcon(QIcon(pixmap))
+                # Write the content of the response to a new file in the temporary directory
+                gif_file_path.write_bytes(response.content)
+
+                movie = QtGui.QMovie()
+                movie.setFileName(str(gif_file_path))
+                movie.setCacheMode(QtGui.QMovie.CacheMode.CacheAll)
+                movie.frameChanged.connect(lambda: patron_button.setIcon(QIcon(movie.currentPixmap())))
+                movie.start()
+            else:
+                response = requests.get(patron.photo)
+                response.raise_for_status()  # Ensure we got a successful response
+
+                image = QtGui.QImage()
+                image.loadFromData(response.content)
+                pixmap = QtGui.QPixmap(image)
+                patron_button.setIcon(QIcon(pixmap))
             patron_button.setIconSize(patron_button.size())
         else:
             # Set button color based on patron name
@@ -194,11 +223,14 @@ class MainWindow(QMainWindow):
         menu = QtWidgets.QMenu()
         edit_patron_action = menu.addAction('Edit Patron')
         remove_patron_action = menu.addAction('Remove Patron')
+        add_picture_action = menu.addAction('Add Picture')
         res = menu.exec(QtGui.QCursor.pos())
         if res == edit_patron_action:
             self.edit_patron(patron, patron_button)
         elif res == remove_patron_action:
             self.remove_patron(patron, patron_button)
+        elif res == add_picture_action:
+                self.add_picture(patron, patron_button)
 
     def edit_patron(self, patron, patron_button):
         name, ok = QInputDialog().getText(self, 'Edit Patron', "Please enter the new name:",
@@ -217,11 +249,12 @@ class MainWindow(QMainWindow):
             # Extract initials from patron name
             initials = ''.join([x[0] for x in patron.name.split(' ')]).upper()
             patron_button.setText(initials)
-            
+
     def remove_patron(self, patron, patron_button):
         reply = QMessageBox.question(self, 'Remove Patron',
                                      'Are you sure you want to remove patron from the database?',
-                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                                     QMessageBox.StandardButton.No)
 
         if reply == QMessageBox.StandardButton.Yes:
             url = urljoin(API_URL, f'patrons/{patron.id}')
@@ -233,6 +266,22 @@ class MainWindow(QMainWindow):
             else:
                 QMessageBox(QMessageBox.Icon.Critical, 'Delete Error',
                             'An error occurred while trying to delete the patron. Please try again.').exec()
+
+    def add_picture(self, patron, patron_button):
+        file_dialog = QtWidgets.QFileDialog()
+        file_dialog.setFileMode(QtWidgets.QFileDialog.FileMode.ExistingFile)
+        file_dialog.setNameFilter("Images (*.png *.xpm *.jpg *.bmp)")
+        if file_dialog.exec():
+            file_path = file_dialog.selectedFiles()[0]
+            with open(file_path, 'rb') as file:
+                url = urljoin(API_URL, f'patrons/{patron.id}')
+                response = requests.post(url, data={'photo': file})
+                if response.status_code == 200:
+                    patron.photo = response.json()['photo']
+                    self.set_patron_icon(patron, patron_button)
+                else:
+                    QMessageBox(QMessageBox.Icon.Critical, 'Upload Error',
+                                'An error occurred while trying to upload the picture. Please try again.').exec()
 
     def settle_up(self):
         # Update order total
@@ -248,8 +297,34 @@ class MainWindow(QMainWindow):
 
             self.back_to_patrons()
 
-    def get_patron_grid_cell(self, num_patrons: int) -> (int, int):
-        return num_patrons // PATRON_COLUMNS, num_patrons % PATRON_COLUMNS
+    def get_new_patron_grid_cell(self, num_patrons: int) -> (int, int):
+        direction_names = ['right', 'down', 'left', 'up']
+        directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+        final_direction = (0, 0)
+
+        direction = 0
+        side_length = 1
+        side_position = 0
+        turns_this_length = 0
+
+        for i in range(num_patrons):
+            next_direction = directions[direction]
+            final_direction = tuple(map(sum, zip(final_direction, next_direction)))
+
+            side_position += 1
+            if side_position == side_length:
+                direction += 1
+                turns_this_length += 1
+                side_position = 0
+
+            if turns_this_length == 2:
+                side_length += 1
+                turns_this_length = 0
+
+            if direction == 4:
+                direction = 0
+
+        return final_direction[0] + DEFAULT_SPIRAL_SHELLS, final_direction[1] + DEFAULT_SPIRAL_SHELLS
 
     ####################################################################################################################
     # Cart
@@ -460,7 +535,7 @@ class MainWindow(QMainWindow):
 
         # Connect UI
         drink_ui.add_to_cart_button.clicked.connect(lambda: self.add_to_cart(drink))
-        #drink_ui.photo_button.clicked.connect(lambda: self.add_to_cart(drink))
+        # drink_ui.photo_button.clicked.connect(lambda: self.add_to_cart(drink))
 
         # Add widget to layout
         self.ui.menu_grid_layout.addWidget(drink_widget, x, y)
