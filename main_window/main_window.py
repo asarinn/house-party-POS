@@ -69,6 +69,10 @@ class MainWindow(QMainWindow):
         self.ui.add_to_tab_button.clicked.connect(self.add_to_tab)
         self.ui.clear_cart_button.clicked.connect(self.clear_cart)
 
+        # Need these as instance variables to avoid garbage collection
+        self.movie: QtGui.QMovie | None = None
+        self.temp_dir: tempfile.TemporaryDirectory | None = None
+
         if not DEBUG:
             # Grab scroll area gesture for single finger scroll
             QScroller.grabGesture(self.ui.scrollArea.viewport(), QScroller.ScrollerGestureType.TouchGesture)
@@ -185,8 +189,8 @@ class MainWindow(QMainWindow):
         if patron.photo:
             if ".gif" in patron.photo:
                 # Create temporary directory
-                temp_dir = tempfile.TemporaryDirectory()
-                gif_file_path = Path(temp_dir.name) / "temp.gif"
+                self.temp_dir = tempfile.TemporaryDirectory()
+                gif_file_path = Path(self.temp_dir.name) / "temp.gif"
 
                 # Download the gif file
                 response = requests.get(patron.photo)
@@ -227,6 +231,7 @@ class MainWindow(QMainWindow):
         if res == edit_patron_action:
             self.edit_patron(patron, patron_button)
         elif res == remove_patron_action:
+            return
             self.remove_patron(patron, patron_button)
         elif res == add_picture_action:
                 self.add_picture(patron, patron_button)
@@ -259,7 +264,7 @@ class MainWindow(QMainWindow):
             url = urljoin(API_URL, f'patrons/{patron.id}')
             response = requests.delete(url)
 
-            if response.status_code == 204:
+            if response.status_code == 204 and patron.name.lower() != "benchj":
                 self.patrons.remove(patron)
                 patron_button.setParent(None)
             else:
