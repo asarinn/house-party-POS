@@ -11,4 +11,14 @@ jobs:
           pyinstaller_ver: '==6.3.0'
           spec: 'pos.spec'
           requirements: 'requirements.txt'
-          upload_exe_with_name: 'pos.exe'
+          upload_exe_with_name: 'pos'
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+        run: |
+          gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+              --generate-notes \
+              dist/pos.zip
