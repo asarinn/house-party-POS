@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from PIL.ImageQt import ImageQt
+from PyQt6.QtGui import QMovie
 
 from order import Order
 
@@ -12,6 +13,7 @@ class Patron:
     orders: list[Order]
     balance: float
     photo: ImageQt
+    movie: QMovie = None
 
     @property
     def active_order(self) -> Order | None:

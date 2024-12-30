@@ -1,15 +1,10 @@
 import json
-import math
-import time
-import urllib
 import warnings
 from datetime import datetime
 from functools import partial
 from pathlib import Path
 from random import choice
 from urllib.parse import urljoin
-import os
-import urllib.request
 import tempfile
 
 # 3rd party imports
@@ -18,7 +13,7 @@ from PyQt6 import QtCore, QtWidgets, QtGui
 from colorhash import ColorHash
 from PyQt6.QtWidgets import QMainWindow, QInputDialog, QMessageBox, QWidget, QPushButton, QScroller
 from PyQt6.QtGui import QPixmap, QIcon
-from PyQt6.QtCore import Qt, QUrl, QSize, QBuffer, QByteArray
+from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -39,6 +34,7 @@ API_URL = 'http://192.168.1.9/api/'
 DRINK_COLUMNS = 4
 PATRON_COLUMNS = 8
 DEFAULT_SPIRAL_SHELLS = 7
+BUTTON_SIZE = 150, 150
 DEBUG = False
 
 
@@ -62,16 +58,13 @@ class MainWindow(QMainWindow):
         self.patrons: list[Patron] = []
         self.cart: OrderItem = []
         self._active_patron: Patron | None = None
+        self.temp_dir: tempfile.TemporaryDirectory | None = None
 
         self.ui.new_patron_button.clicked.connect(self.add_patron)
         self.ui.settle_up_button.clicked.connect(self.settle_up)
         self.ui.back_to_patrons_button.clicked.connect(self.back_to_patrons)
         self.ui.add_to_tab_button.clicked.connect(self.add_to_tab)
         self.ui.clear_cart_button.clicked.connect(self.clear_cart)
-
-        # Need these as instance variables to avoid garbage collection
-        self.movie: QtGui.QMovie | None = None
-        self.temp_dir: tempfile.TemporaryDirectory | None = None
 
         if not DEBUG:
             # Grab scroll area gesture for single finger scroll
@@ -168,8 +161,8 @@ class MainWindow(QMainWindow):
         patron_button.setSizePolicy(sizePolicy)
 
         # OK I give up
-        patron_button.setMinimumSize(150, 150)
-        patron_button.setMaximumSize(150, 150)
+        patron_button.setMinimumSize(*BUTTON_SIZE)
+        patron_button.setMaximumSize(*BUTTON_SIZE)
 
         # If the user has a picture use that, otherwise use initials and color
         self.set_patron_icon(patron, patron_button)
@@ -199,11 +192,12 @@ class MainWindow(QMainWindow):
                 # Write the content of the response to a new file in the temporary directory
                 gif_file_path.write_bytes(response.content)
 
-                self.movie = QtGui.QMovie()
-                self.movie.setFileName(str(gif_file_path))
-                self.movie.setCacheMode(QtGui.QMovie.CacheMode.CacheAll)
-                self.movie.frameChanged.connect(lambda: patron_button.setIcon(QIcon(self.movie.currentPixmap())))
-                self.movie.start()
+                patron.movie = QtGui.QMovie()
+                patron.movie.setFileName(str(gif_file_path))
+                patron.movie.setCacheMode(QtGui.QMovie.CacheMode.CacheAll)
+                update_frame = lambda: patron_button.setIcon(QIcon(patron.movie.currentPixmap().scaled(*BUTTON_SIZE, Qt.AspectRatioMode.KeepAspectRatio)))
+                patron.movie.frameChanged.connect(update_frame)
+                patron.movie.start()
             else:
                 response = requests.get(patron.photo)
                 response.raise_for_status()  # Ensure we got a successful response
