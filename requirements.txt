@@ -1,0 +1,7 @@
+colorhash==2.0.0
+flake8==6.1.0
+pillow==10.4.0
+pyinstaller==6.11.1
+PyQt6==6.8.0
+PyQtDarkTheme-fork @ git+https://github.com/henriquegemignani/PyQtDarkTheme.git@2ab002834b964b909358833b2df20e34cd45f18e
+requests==2.32.3
