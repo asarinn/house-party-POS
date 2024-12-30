@@ -36,7 +36,6 @@ from drink import Drink
 from order import Order, OrderItem
 
 API_URL = 'http://192.168.1.9/api/'
-API_URL = "http://127.0.0.1:8000/api/"
 DRINK_COLUMNS = 4
 PATRON_COLUMNS = 8
 DEFAULT_SPIRAL_SHELLS = 7
@@ -196,11 +195,11 @@ class MainWindow(QMainWindow):
                 # Write the content of the response to a new file in the temporary directory
                 gif_file_path.write_bytes(response.content)
 
-                movie = QtGui.QMovie()
-                movie.setFileName(str(gif_file_path))
-                movie.setCacheMode(QtGui.QMovie.CacheMode.CacheAll)
-                movie.frameChanged.connect(lambda: patron_button.setIcon(QIcon(movie.currentPixmap())))
-                movie.start()
+                self.movie = QtGui.QMovie()
+                self.movie.setFileName(str(gif_file_path))
+                self.movie.setCacheMode(QtGui.QMovie.CacheMode.CacheAll)
+                self.movie.frameChanged.connect(lambda: patron_button.setIcon(QIcon(self.movie.currentPixmap())))
+                self.movie.start()
             else:
                 response = requests.get(patron.photo)
                 response.raise_for_status()  # Ensure we got a successful response
