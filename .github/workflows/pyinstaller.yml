@@ -5,6 +5,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Build
+        id: build
         uses: sayyid5416/pyinstaller@v1
         with:
           python_ver: '3.12'
@@ -15,5 +16,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
+          EXE_PATH: ${{ steps.build.outputs.executable_path }}
         run: |
-          gh release create "$tag" --repo="$GITHUB_REPOSITORY" --title="${GITHUB_REPOSITORY#*/} ${tag#v}" --generate-notes $executable_path
+          gh release create "$tag" --repo="$GITHUB_REPOSITORY" --title="${GITHUB_REPOSITORY#*/} ${tag#v}" --generate-notes "$EXE_PATH"
