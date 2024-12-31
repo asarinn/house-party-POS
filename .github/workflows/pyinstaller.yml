@@ -11,7 +11,6 @@ jobs:
           python_ver: '3.12'
           spec: 'pos.spec'
           requirements: 'requirements.txt'
-          upload_exe_with_name: 'pos'
       - run: Compress-Archive -Path dist/pos -DestinationPath pos.zip
       - name: Create release
         shell: bash
