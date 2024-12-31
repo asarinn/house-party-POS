@@ -1,5 +1,8 @@
 name: PyInstaller build
-on: push
+on:
+  push:
+    tags:
+      - '*'
 jobs:
   pyinstaller-build:
     runs-on: windows-latest
@@ -16,5 +19,6 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
         run: |
-          ts=$(date +'%Y-%m-%d %H:%M:%S') && gh release create "$ts" --repo="$GITHUB_REPOSITORY" --title="$ts" --generate-notes pos.zip
+          gh release create "$tag" --repo="$GITHUB_REPOSITORY" --title="$tag" --generate-notes pos.zip
