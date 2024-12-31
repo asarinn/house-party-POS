@@ -19,4 +19,4 @@ jobs:
           tag: ${{ github.ref_name }}
           EXE_PATH: ${{ steps.build.outputs.executable_path }}
         run: |
-          gh release create "$tag" --repo="$GITHUB_REPOSITORY" --title="${GITHUB_REPOSITORY#*/} $(date +'%Y-%m-%d %H:%M:%S')" --generate-notes pos.zip
+          gh release create --repo="$GITHUB_REPOSITORY" --title="${GITHUB_REPOSITORY#*/} $(date +'%Y-%m-%d %H:%M:%S')" --generate-notes pos.zip
