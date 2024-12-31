@@ -12,13 +12,11 @@ jobs:
           spec: 'pos.spec'
           requirements: 'requirements.txt'
           upload_exe_with_name: 'pos'
-      - uses: actions/download-artifact@v4
-      - run: zip -h
-        shell: bash
+      - run: Compress-Archive -Path dist/pos -DesintationPath pos.zip
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
           EXE_PATH: ${{ steps.build.outputs.executable_path }}
         run: |
-          gh release create "$tag" --repo="$GITHUB_REPOSITORY" --title="${GITHUB_REPOSITORY#*/} ${tag#v}" --generate-notes "$GITHUB_WORKSPACE/pos.zip"
+          gh release create "$tag" --repo="$GITHUB_REPOSITORY" --title="${GITHUB_REPOSITORY#*/} ${tag#v}" --generate-notes pos.zip
