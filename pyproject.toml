@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "house-party-pos"
-version = "1.0.0"
+version = "1.0.1"
 description = ""
 authors = ["Brett Heinkel <bheinks@gmail.com>"]
 package-mode = false
