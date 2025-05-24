@@ -182,7 +182,7 @@ class MainWindow(QMainWindow):
         if patron.photo:
             if ".gif" in patron.photo:
                 # Create temporary directory
-                self.temp_dir = tempfile.TemporaryDirectory()
+                self.temp_dir = tempfile.TemporaryDirectory(delete=False)
                 gif_file_path = Path(self.temp_dir.name) / "temp.gif"
 
                 # Download the gif file
