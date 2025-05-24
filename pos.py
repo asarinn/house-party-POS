@@ -8,9 +8,6 @@ from PyQt6.QtWidgets import QApplication
 from main_window import MainWindow
 
 if __name__ == '__main__':
-    import cgitb
-    cgitb.enable(format='text')
-
     # Initialize Qt sys
     app = QApplication(sys.argv)
     qdarktheme.setup_theme()
