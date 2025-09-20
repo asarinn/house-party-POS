@@ -53,7 +53,7 @@ class MainWindow(QMainWindow):
         self.output = QAudioOutput()
         self.player.setAudioOutput(self.output)
         self.output.setVolume(50)
-        self.sound_files = [f.as_posix() for f in resource_path('sounds').glob('*.mp3')]
+        self.sound_files = [f.as_posix() for f in resource_path('sounds').glob('*.m4a')]
 
         self.patrons: list[Patron] = []
         self.cart: OrderItem = []
