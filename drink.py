@@ -10,4 +10,4 @@ class Drink:
     price: float
     photo: ImageQt
     in_stock: bool
-    category: str
+    categories: list[str]
