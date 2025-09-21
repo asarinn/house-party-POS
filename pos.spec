@@ -9,7 +9,7 @@ a = Analysis(
     ['pos.py'],
     pathex=[],
     binaries=[],
-    datas=[('venmo_qrcode.png', '.'), ('sounds', 'sounds')] + copy_metadata('colorhash', recursive=True),
+    datas=[('venmo_qrcode.png', '.')] + copy_metadata('colorhash', recursive=True),
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
