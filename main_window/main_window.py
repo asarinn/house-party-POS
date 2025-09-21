@@ -53,7 +53,7 @@ class MainWindow(QMainWindow):
         self.output = QAudioOutput()
         self.player.setAudioOutput(self.output)
         self.output.setVolume(50)
-        self.sound_files = [f.as_posix() for f in resource_path('sounds').glob('*.m4a')]
+        self.sound_files = [f['file'] for f in requests.get(urljoin(API_URL, 'sounds')).json()]
 
         self.patrons: list[Patron] = []
         self.cart: OrderItem = []
@@ -295,8 +295,7 @@ class MainWindow(QMainWindow):
 
             self.back_to_patrons()
 
-    def get_new_patron_grid_cell(self, num_patrons: int) -> (int, int):
-        direction_names = ['right', 'down', 'left', 'up']
+    def get_new_patron_grid_cell(self, num_patrons: int) -> tuple[int, int]:
         directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
         final_direction = (0, 0)
 
@@ -443,7 +442,7 @@ class MainWindow(QMainWindow):
 
         # Play random soundbyte
         sound = choice(self.sound_files)
-        path = QUrl.fromLocalFile(sound)
+        path = QUrl(sound)
         self.player.setSource(path)
         self.player.play()
 
